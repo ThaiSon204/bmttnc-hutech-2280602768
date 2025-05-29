@@ -1,10 +1,11 @@
 from flask import Flask, request, jsonify
 from cipher.playfair.playfair_cipher import PlayFairCipher
-
+from cipher.railfence.railfence_cipher import  RailFenceCipher
+from cipher.vigenere.vigenere_cipher import VigenereCipher
 app = Flask(__name__)
 
 playfair_cipher = PlayFairCipher()
-
+railfence_cipher = RailFenceCipher()
 @app.route('/api/playfair/creatematrix', methods=['POST'])
 def playfair_creatematrix():
     try:
@@ -48,6 +49,41 @@ def playfair_decrypt():
         return jsonify({'error': str(e)}), 400
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+@app.route('/api/railfence/encrypt', methods=['POST'])
+def railfence_encrypt():
+    try:
+        data = request.json
+        if not data or 'plain_text' not in data or 'key' not in data:
+            return jsonify({'error': 'Missing plain_text or key'}), 400
+        plain_text = data['plain_text']
+        key = int(data['key'])
+
+        encrypted_text = railfence_cipher.rail_encrypt(plain_text, key)
+        return jsonify({'encrypted_text': encrypted_text})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/railfence/decrypt', methods=['POST'])
+def railfence_decrypt():
+    try:
+        data = request.json
+        if not data or 'cipher_text' not in data or 'key' not in data:
+            return jsonify({'error': 'Missing cipher_text or key'}), 400
+        cipher_text = data['cipher_text']
+        key = int(data['key'])
+        decrypted_text = railfence_cipher.rail_decrypt(cipher_text, key)
+        return jsonify({'decrypted_text': decrypted_text})
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
